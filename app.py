@@ -1,8 +1,30 @@
 import streamlit as st
 import time
 import random
-from gtts import gTTS
 from io import BytesIO
+
+# --- 1. 防止錯誤的工具函數 ---
+def safe_rerun():
+    """自動判斷 Streamlit 版本來執行重整"""
+    try:
+        st.rerun()
+    except AttributeError:
+        # 舊版 Streamlit 支援
+        st.experimental_rerun()
+
+def safe_play_audio(text):
+    """安全的語音播放，失敗時不會崩潰"""
+    try:
+        from gtts import gTTS
+        tts = gTTS(text=text, lang='id')
+        fp = BytesIO()
+        tts.write_to_fp(fp)
+        st.audio(fp, format='audio/mp3')
+    except ImportError:
+        st.error("⚠️ 系統偵測到未安裝 gTTS 套件。請執行 `pip install gTTS`。")
+    except Exception as e:
+        st.warning(f"🔇 語音無法播放 (可能是網路問題)，請看文字練習。")
+        # 不顯示詳細錯誤以免嚇到學生
 
 # --- 0. 系統與視覺配置 ---
 st.set_page_config(page_title="Unit 13: I Cowa?", page_icon="📍", layout="centered")
@@ -16,18 +38,13 @@ st.markdown("""
         font-size: 12px; color: #aaa; text-align: right; font-style: italic; margin-top: 4px;
     }
     .word-card {
-        background: linear-gradient(135deg, #E8F5E9 0%, #ffffff 100%); /* 綠色系 */
+        background: linear-gradient(135deg, #E8F5E9 0%, #ffffff 100%);
         padding: 20px;
         border-radius: 15px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         text-align: center;
         margin-bottom: 15px;
         border-bottom: 4px solid #4CAF50;
-        transition: transform 0.2s;
-    }
-    .word-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
     }
     .emoji-icon { font-size: 48px; margin-bottom: 10px; }
     .amis-text { font-size: 22px; font-weight: bold; color: #2E7D32; }
@@ -43,7 +60,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 1. 資料庫 (修正後的詞彙與文法) ---
+# --- 2. 資料庫 (Unit 13 修正版) ---
 vocab_data = [
     {"amis": "Talacowa", "chi": "去哪裡", "icon": "❓", "source": "Row 8"},
     {"amis": "Tayra", "chi": "去 (那裡)", "icon": "👉", "source": "Row 19"},
@@ -51,8 +68,8 @@ vocab_data = [
     {"amis": "Posong", "chi": "台東", "icon": "🏞️", "source": "Row 19"},
     {"amis": "Niyaro'", "chi": "部落 / 社區", "icon": "🏘️", "source": "Row 15"},
     {"amis": "Loma'", "chi": "家", "icon": "🏠", "source": "Unit 10"},
-    {"amis": "Pitilidan", "chi": "學校", "icon": "🏫", "source": "Correction"}, # Gako -> pitilidan
-    {"amis": "Omah", "chi": "農田 / 田地", "icon": "🌾", "source": "Correction"}, # 定義修正
+    {"amis": "pitilidan", "chi": "學校", "icon": "🏫", "source": "Correction"},
+    {"amis": "Omah", "chi": "農田 / 田地", "icon": "🌾", "source": "Correction"},
     {"amis": "Patiyamay", "chi": "商店 / 市場", "icon": "🏪", "source": "Basic"},
     {"amis": "Kaying", "chi": "小姐", "icon": "👩", "source": "Row 10"}, 
 ]
@@ -61,11 +78,11 @@ sentences = [
     {"amis": "Talacowa kiso?", "chi": "你要去哪裡？", "icon": "❓", "source": "Row 8"},
     {"amis": "Tayra kami i Posong.", "chi": "我們去台東。", "icon": "🚗", "source": "Row 19"},
     {"amis": "I cowa ko niyaro'?", "chi": "部落在哪裡？", "icon": "🏘️", "source": "Row 15"},
-    {"amis": "I loma' ci mama.", "chi": "爸爸在家裡。", "icon": "🏠", "source": "Correction"}, # ko -> ci
-    {"amis": "Tayra ci Kaying i pitilidan.", "chi": "小姐去學校。", "icon": "🏫", "source": "Grammar"}, # gako -> pitilidan
+    {"amis": "I loma' ci mama.", "chi": "爸爸在家裡。", "icon": "🏠", "source": "Correction"}, 
+    {"amis": "Tayra ci Kaying i pitilidan.", "chi": "小姐去學校。", "icon": "🏫", "source": "Grammar"},
 ]
 
-# --- 2. 隨機題庫系統 (已更新選項) ---
+# --- 3. 隨機題庫 ---
 quiz_pool = [
     {
         "type": "listening",
@@ -101,8 +118,8 @@ quiz_pool = [
     },
     {
         "type": "translation",
-        "q": "單字測驗：Pitilidan",
-        "audio": "Pitilidan",
+        "q": "單字測驗：pitilidan",
+        "audio": "pitilidan",
         "options": ["學校", "農田", "家"],
         "ans": "學校",
         "hint": "讀書寫字的地方"
@@ -125,28 +142,19 @@ quiz_pool = [
     }
 ]
 
-# --- 3. 工具函數 ---
-def play_audio(text):
-    try:
-        # 使用印尼語 (id) 發音
-        tts = gTTS(text=text, lang='id')
-        fp = BytesIO()
-        tts.write_to_fp(fp)
-        st.audio(fp, format='audio/mp3')
-    except:
-        st.error("語音生成暫時無法使用")
-
-# 初始化 Session
-if 'score' not in st.session_state: st.session_state.score = 0
+# --- 4. 初始化 Session (防止 Key Error) ---
+if 'score' not in st.session_state: 
+    st.session_state.score = 0
 if 'quiz_questions' not in st.session_state:
     st.session_state.quiz_questions = random.sample(quiz_pool, 3)
-if 'current_q_idx' not in st.session_state: st.session_state.current_q_idx = 0
+if 'current_q_idx' not in st.session_state: 
+    st.session_state.current_q_idx = 0
 
-# --- 4. 主介面 ---
+# --- 5. 主介面 ---
 st.markdown("<h1 style='text-align: center; color: #2E7D32;'>Unit 13: I Cowa?</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #666;'>地點與移動 (User Corrected)</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #666;'>地點與移動 (Safe Mode)</p>", unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["📚 詞彙與句型", "🎲 隨機挑戰 (Random Quiz)"])
+tab1, tab2 = st.tabs(["📚 詞彙與句型", "🎲 隨機挑戰"])
 
 # === Tab 1: 學習模式 ===
 with tab1:
@@ -163,7 +171,7 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
             if st.button(f"🔊 聽發音", key=f"btn_{word['amis']}"):
-                play_audio(word['amis'])
+                safe_play_audio(word['amis'])
 
     st.markdown("---")
     st.subheader("🗣️ 實用句型")
@@ -176,13 +184,13 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
         if st.button(f"▶️ 播放句型", key=f"s_btn_{s['amis'][:5]}"):
-            play_audio(s['amis'])
+            safe_play_audio(s['amis'])
 
 # === Tab 2: 隨機挑戰模式 ===
 with tab2:
     st.markdown("### 🎲 隨機評量")
-    st.caption("每次進入都會隨機抽出 3 題，考驗你的真實實力！")
     
+    # 檢查是否還有題目
     if st.session_state.current_q_idx < len(st.session_state.quiz_questions):
         q_data = st.session_state.quiz_questions[st.session_state.current_q_idx]
         
@@ -192,8 +200,9 @@ with tab2:
         st.markdown(f"### {q_data['q']}")
         if q_data['audio']:
             if st.button("🎧 播放題目音檔"):
-                play_audio(q_data['audio'])
+                safe_play_audio(q_data['audio'])
         
+        # 使用 key 防止 radio 狀態殘留
         user_choice = st.radio("請選擇正確答案：", q_data['options'], key=f"q_{st.session_state.current_q_idx}")
         
         if st.button("送出答案"):
@@ -203,7 +212,7 @@ with tab2:
                 time.sleep(1.5)
                 st.session_state.score += 100
                 st.session_state.current_q_idx += 1
-                st.rerun()
+                safe_rerun() # 使用安全重整
             else:
                 st.error(f"不對喔！提示：{q_data['hint']}")
                 
@@ -221,5 +230,4 @@ with tab2:
             st.session_state.score = 0
             st.session_state.current_q_idx = 0
             st.session_state.quiz_questions = random.sample(quiz_pool, 3)
-            st.rerun()
-
+            safe_rerun() # 使用安全重整
