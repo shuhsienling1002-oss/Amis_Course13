@@ -76,7 +76,7 @@ vocab_data = [
     {"amis": "Posong", "chi": "台東", "icon": "🏞️", "source": "Row 19"},
     {"amis": "Niyaro'", "chi": "部落 / 社區", "icon": "🏘️", "source": "Row 15"},
     {"amis": "Loma'", "chi": "家", "icon": "🏠", "source": "Unit 10"},
-    {"amis": "pitilidan", "chi": "學校", "icon": "🏫", "source": "Correction"},
+    {"amis": "Pitilidan", "chi": "學校", "icon": "🏫", "source": "Correction"},
     {"amis": "Omah", "chi": "農田 / 田地", "icon": "🌾", "source": "Correction"},
     {"amis": "Patiyamay", "chi": "商店 / 市場", "icon": "🏪", "source": "Basic"},
     {"amis": "kaying", "chi": "小姐 / 姑娘", "icon": "👩", "source": "Row 10"}, 
@@ -116,13 +116,13 @@ quiz_pool = [
     {
         "q": "Tayra ko kaying i _______ (小姐去學校)",
         "audio": None,
-        "options": ["pitilidan (學校)", "Patiyamay (市場)", "Loma' (家)"],
-        "ans": "pitilidan (學校)",
-        "hint": "學校是 pitilidan"
+        "options": ["Pitilidan (學校)", "Patiyamay (市場)", "Loma' (家)"],
+        "ans": "Pitilidan (學校)",
+        "hint": "學校是 Pitilidan"
     },
     {
-        "q": "單字測驗：pitilidan",
-        "audio": "pitilidan",
+        "q": "單字測驗：Pitilidan",
+        "audio": "Pitilidan",
         "options": ["學校", "農田", "家"],
         "ans": "學校",
         "hint": "讀書寫字的地方"
@@ -232,3 +232,4 @@ with tab2:
             st.session_state.quiz_questions = random.sample(quiz_pool, 3)
             st.session_state.quiz_id = str(random.randint(1000, 9999))
             safe_rerun()
+
