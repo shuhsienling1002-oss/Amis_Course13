@@ -51,7 +51,7 @@ vocab_data = [
     {"amis": "Posong", "chi": "台東", "icon": "🏞️", "source": "Row 19"},
     {"amis": "Niyaro'", "chi": "部落 / 社區", "icon": "🏘️", "source": "Row 15"},
     {"amis": "Loma'", "chi": "家", "icon": "🏠", "source": "Unit 10"},
-    {"amis": "pitilidan", "chi": "學校", "icon": "🏫", "source": "Correction"}, # Gako -> pitilidan
+    {"amis": "Pitilidan", "chi": "學校", "icon": "🏫", "source": "Correction"}, # Gako -> pitilidan
     {"amis": "Omah", "chi": "農田 / 田地", "icon": "🌾", "source": "Correction"}, # 定義修正
     {"amis": "Patiyamay", "chi": "商店 / 市場", "icon": "🏪", "source": "Basic"},
     {"amis": "Kaying", "chi": "小姐", "icon": "👩", "source": "Row 10"}, 
@@ -101,8 +101,8 @@ quiz_pool = [
     },
     {
         "type": "translation",
-        "q": "單字測驗：pitilidan",
-        "audio": "pitilidan",
+        "q": "單字測驗：Pitilidan",
+        "audio": "Pitilidan",
         "options": ["學校", "農田", "家"],
         "ans": "學校",
         "hint": "讀書寫字的地方"
@@ -222,3 +222,4 @@ with tab2:
             st.session_state.current_q_idx = 0
             st.session_state.quiz_questions = random.sample(quiz_pool, 3)
             st.rerun()
+
