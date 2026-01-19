@@ -12,7 +12,7 @@ def safe_rerun():
         try:
             st.experimental_rerun()
         except:
-            st.stop() # 如果都失敗，至少停止執行避免紅字
+            st.stop()
 
 def safe_play_audio(text):
     """語音播放安全模式"""
@@ -24,8 +24,7 @@ def safe_play_audio(text):
         tts.write_to_fp(fp)
         st.audio(fp, format='audio/mp3')
     except Exception as e:
-        # 如果失敗，只顯示圖示提示，不讓程式崩潰
-        st.caption(f"🔇 (語音生成暫時無法使用: {str(e)})")
+        st.caption(f"🔇 (語音生成暫時無法使用)")
 
 # --- 0. 系統配置 ---
 st.set_page_config(page_title="Unit 13: I Cowa?", page_icon="📍", layout="centered")
@@ -69,7 +68,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. 資料庫 (修正版) ---
+# --- 2. 資料庫 (Unit 13 最終修正) ---
 vocab_data = [
     {"amis": "Talacowa", "chi": "去哪裡", "icon": "❓", "source": "Row 8"},
     {"amis": "Tayra", "chi": "去 (那裡)", "icon": "👉", "source": "Row 19"},
@@ -80,7 +79,7 @@ vocab_data = [
     {"amis": "pitilidan", "chi": "學校", "icon": "🏫", "source": "Correction"},
     {"amis": "Omah", "chi": "農田 / 田地", "icon": "🌾", "source": "Correction"},
     {"amis": "Patiyamay", "chi": "商店 / 市場", "icon": "🏪", "source": "Basic"},
-    {"amis": "Kaying", "chi": "小姐", "icon": "👩", "source": "Row 10"}, 
+    {"amis": "kaying", "chi": "小姐 / 姑娘", "icon": "👩", "source": "Row 10"}, 
 ]
 
 sentences = [
@@ -88,7 +87,7 @@ sentences = [
     {"amis": "Tayra kami i Posong.", "chi": "我們去台東。", "icon": "🚗", "source": "Row 19"},
     {"amis": "I cowa ko niyaro'?", "chi": "部落在哪裡？", "icon": "🏘️", "source": "Row 15"},
     {"amis": "I loma' ci mama.", "chi": "爸爸在家裡。", "icon": "🏠", "source": "Correction"}, 
-    {"amis": "Tayra ci Kaying i pitilidan.", "chi": "小姐去學校。", "icon": "🏫", "source": "Grammar"},
+    {"amis": "Tayra ko kaying i pitilidan.", "chi": "小姐去學校。", "icon": "🏫", "source": "User Fix"}, # 修正處
 ]
 
 # --- 3. 隨機題庫 ---
@@ -115,11 +114,11 @@ quiz_pool = [
         "hint": "詢問「位置」用 I cowa"
     },
     {
-        "q": "Tayra ci Ina i _______ (媽媽去買菜)",
+        "q": "Tayra ko kaying i _______ (小姐去學校)",
         "audio": None,
-        "options": ["Patiyamay (市場/商店)", "pitilidan (學校)", "Loma' (家)"],
-        "ans": "Patiyamay (市場/商店)",
-        "hint": "買菜通常去市場"
+        "options": ["pitilidan (學校)", "Patiyamay (市場)", "Loma' (家)"],
+        "ans": "pitilidan (學校)",
+        "hint": "學校是 pitilidan"
     },
     {
         "q": "單字測驗：pitilidan",
@@ -144,17 +143,17 @@ quiz_pool = [
     }
 ]
 
-# --- 4. 狀態初始化 (最重要的一步) ---
+# --- 4. 狀態初始化 ---
 if 'init' not in st.session_state:
     st.session_state.score = 0
     st.session_state.quiz_questions = random.sample(quiz_pool, 3)
     st.session_state.current_q_idx = 0
-    st.session_state.quiz_id = str(random.randint(1000, 9999)) # 防止 Key 重複
+    st.session_state.quiz_id = str(random.randint(1000, 9999))
     st.session_state.init = True
 
 # --- 5. 主介面 ---
 st.markdown("<h1 style='text-align: center; color: #2E7D32;'>Unit 13: I Cowa?</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #666;'>地點與移動 (修正版)</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #666;'>地點與移動 (User Fixed)</p>", unsafe_allow_html=True)
 
 tab1, tab2 = st.tabs(["📚 詞彙與句型", "🎲 隨機挑戰"])
 
@@ -192,21 +191,17 @@ with tab1:
 with tab2:
     st.markdown("### 🎲 隨機評量")
     
-    # 確保索引不超標
     if st.session_state.current_q_idx < len(st.session_state.quiz_questions):
         q_data = st.session_state.quiz_questions[st.session_state.current_q_idx]
         
-        # 進度條
         st.progress((st.session_state.current_q_idx) / 3)
         st.markdown(f"**Question {st.session_state.current_q_idx + 1} / 3**")
         
-        # 顯示題目
         st.markdown(f"### {q_data['q']}")
         if q_data['audio']:
             if st.button("🎧 播放題目音檔", key=f"btn_audio_{st.session_state.current_q_idx}"):
                 safe_play_audio(q_data['audio'])
         
-        # [關鍵修正] 使用 quiz_id 確保 key 唯一，避免 DuplicateWidgetKey 錯誤
         unique_key = f"q_{st.session_state.quiz_id}_{st.session_state.current_q_idx}"
         user_choice = st.radio("請選擇正確答案：", q_data['options'], key=unique_key)
         
@@ -214,7 +209,7 @@ with tab2:
             if user_choice == q_data['ans']:
                 st.balloons()
                 st.success("🎉 答對了！")
-                time.sleep(1) # 等待一下讓使用者看到成功訊息
+                time.sleep(1)
                 st.session_state.score += 100
                 st.session_state.current_q_idx += 1
                 safe_rerun()
@@ -222,7 +217,6 @@ with tab2:
                 st.error(f"不對喔！提示：{q_data['hint']}")
                 
     else:
-        # 結算畫面
         st.progress(1.0)
         st.markdown(f"""
         <div style='text-align: center; padding: 30px; background-color: #C8E6C9; border-radius: 20px; margin-top: 20px;'>
@@ -236,5 +230,5 @@ with tab2:
             st.session_state.score = 0
             st.session_state.current_q_idx = 0
             st.session_state.quiz_questions = random.sample(quiz_pool, 3)
-            st.session_state.quiz_id = str(random.randint(1000, 9999)) # 更新 ID 防止報錯
+            st.session_state.quiz_id = str(random.randint(1000, 9999))
             safe_rerun()
